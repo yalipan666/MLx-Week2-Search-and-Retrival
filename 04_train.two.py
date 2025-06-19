@@ -29,8 +29,9 @@ dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #
 #
 w2v = models.SkipGram(voc=len(words_to_ids), emb=128)
-w2v.load_state_dict(torch.load('./checkpoints/2025_02_06__18_31_03.0.70000.w2v.pth'))
-
+w2v.load_state_dict(torch.load('./checkpoints/2025_06_19__10_02_10.4.50000.w2v.pth'))
+# .pth saves the weights, bias, and other parameters, that's why you need to call models first to get the architecutre
+# in comparison, .pt saves everything in the model, so is bigger
 
 #
 #
@@ -52,7 +53,7 @@ opt = torch.optim.Adam(two.parameters(), lr=0.003)
 #
 #
 #
-for epoch in range(1):
+for epoch in range(3):
   prgs = tqdm.tqdm(dl, desc=f"Epoch {epoch + 1}", leave=False)
   for idx, (qry, pos, neg) in enumerate(prgs):
     qry, pos, neg = qry.to(dev), pos.to(dev), neg.to(dev)
