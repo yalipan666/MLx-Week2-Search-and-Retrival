@@ -64,7 +64,8 @@ class Triplets(torch.utils.data.Dataset):
     text = self.preprocess(text)
     tkns = [self.tkns[t] for t in text if t in self.tkns]
     if len(tkns) == 0: return
-    tkns = torch.tensor(tkns).to('cuda:0')
+    device = self.embs.weight.device
+    tkns = torch.tensor(tkns).to(device)
     embs = self.embs(tkns)
     return embs.mean(dim=0)
 
