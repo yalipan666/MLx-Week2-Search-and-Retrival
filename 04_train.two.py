@@ -30,7 +30,7 @@ dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #
 w2v = models.SkipGram(voc=len(words_to_ids), emb=128).to(dev)
 w2v.load_state_dict(torch.load('./checkpoints/2025_06_19__10_02_10.4.50000.w2v.pth'))
-print(w2v.device)
+print(next(w2v.parameters()).device)
 # .pth saves the weights, bias, and other parameters, that's why you need to call models first to get the architecutre
 # in comparison, .pt saves everything in the model, so is bigger
 
