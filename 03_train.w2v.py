@@ -35,10 +35,22 @@ dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # --- GloVe Download and Extraction ---
 glove_dir = './corpus/glove/'
 glove_file = os.path.join(glove_dir, 'glove.6B.300d.txt')
+glove_url = 'http://nlp.stanford.edu/data/glove.6B.zip'
+glove_zip = os.path.join(glove_dir, 'glove.6B.zip')
 emb_dim = 300
 
 if not os.path.exists(glove_file):
-    raise FileNotFoundError(f"GloVe file not found at {glove_file}. Please download and place it there.")
+    os.makedirs(glove_dir, exist_ok=True)
+    print('Downloading GloVe embeddings...')
+    r = requests.get(glove_url, stream=True)
+    with open(glove_zip, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
+    print('Extracting GloVe embeddings...')
+    with zipfile.ZipFile(glove_zip, 'r') as zip_ref:
+        zip_ref.extract('glove.6B.300d.txt', glove_dir)
+    os.remove(glove_zip)
 
 
 #

@@ -24,7 +24,7 @@ embedding_layer = torch.nn.Embedding.from_pretrained(embedding_matrix, freeze=Fa
 #
 #
 #
-two = models.Towers(emb=50).to(dev)
+two = models.Towers(emb=300).to(dev)
 two.load_state_dict(torch.load('./checkpoints/2025_06_19__22_23_10.0.150.two.pth'))
 
 
