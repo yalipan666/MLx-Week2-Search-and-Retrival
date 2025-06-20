@@ -20,8 +20,21 @@ embedding_matrix = np.load('./corpus/glove_embeddings.npy')
 embedding_matrix = torch.tensor(embedding_matrix, dtype=torch.float32).to(dev)
 embedding_layer = torch.nn.Embedding.from_pretrained(embedding_matrix, freeze=False)
 
-train_ds = dataset_rnn.Triplets(embedding_layer, words_to_ids, split='train')
-val_ds = dataset_rnn.Triplets(embedding_layer, words_to_ids, split='validation')
+# Use dataset_rnn.Triplets for queries, dataset.Triplets for docs
+class HybridTriplets(torch.utils.data.Dataset):
+    def __init__(self, embs, tkns, split='train'):
+        self.qry_ds = dataset_rnn.Triplets(embs, tkns, split=split)
+        self.doc_ds = dataset.Triplets(embs, tkns, split=split)
+        assert len(self.qry_ds) == len(self.doc_ds)
+    def __len__(self):
+        return len(self.qry_ds)
+    def __getitem__(self, idx):
+        qry, _, _ = self.qry_ds[idx]
+        _, pos, neg = self.doc_ds[idx]
+        return qry, pos, neg
+
+train_ds = HybridTriplets(embedding_layer, words_to_ids, split='train')
+val_ds = HybridTriplets(embedding_layer, words_to_ids, split='validation')
 
 def collate_rnn_qry(batch):
     qrys, poss, negs = zip(*batch)
@@ -29,7 +42,6 @@ def collate_rnn_qry(batch):
     poss = [p for p in poss if p is not None]
     negs = [n for n in negs if n is not None]
     qrys = pad_sequence(qrys, batch_first=True)  # (batch, max_qry_len, emb)
-    # poss and negs are already averaged (from dataset.py), so just stack
     poss = torch.stack(poss)
     negs = torch.stack(negs)
     return qrys, poss, negs
