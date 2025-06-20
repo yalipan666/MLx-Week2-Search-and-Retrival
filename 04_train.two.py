@@ -53,7 +53,7 @@ opt = torch.optim.Adam(two.parameters(), lr=0.003)
 #
 #
 #
-for epoch in range(2):
+for epoch in range(5):
   prgs = tqdm.tqdm(dl, desc=f"Epoch {epoch + 1}", leave=False)
   train_losses = []
   for idx, (qry, pos, neg) in enumerate(prgs):
