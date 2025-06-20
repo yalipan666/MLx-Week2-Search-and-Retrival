@@ -50,6 +50,5 @@ for split in ds.keys():
 #
 #
 #
-print(docs['fdb37125d43984c2'])
 print(random.choice(list(docs.values())))
 print(qrys[9655])

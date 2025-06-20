@@ -42,7 +42,7 @@ emb_dim = 300
 if not os.path.exists(glove_file):
     os.makedirs(glove_dir, exist_ok=True)
     print('Downloading GloVe embeddings...')
-    r = requests.get(glove_url, stream=True)
+    r = requests.get(glove_url, stream=True, verify=False)
     with open(glove_zip, 'wb') as f:
         for chunk in r.iter_content(chunk_size=8192):
             if chunk:
