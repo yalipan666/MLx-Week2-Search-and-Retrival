@@ -8,6 +8,7 @@ import dataset
 import datetime
 import wandb
 import tqdm
+import numpy as np
 
 
 #
@@ -24,27 +25,23 @@ with open('./corpus/tokeniser.pkl', 'rb') as f: tkns = pickle.load(f)
 words_to_ids, ids_to_words = tkns['words_to_ids'], tkns['ids_to_words']
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Load GloVe embedding matrix
+embedding_matrix = np.load('./corpus/glove_embeddings.npy')
+embedding_matrix = torch.tensor(embedding_matrix, dtype=torch.float32).to(dev)
+embedding_layer = torch.nn.Embedding.from_pretrained(embedding_matrix, freeze=False)
+
 
 #
 #
 #
-w2v = models.SkipGram(voc=len(words_to_ids), emb=128).to(dev)
-w2v.load_state_dict(torch.load('./checkpoints/2025_06_19__10_02_10.4.50000.w2v.pth'))
-print(next(w2v.parameters()).device)
-# .pth saves the weights, bias, and other parameters, that's why you need to call models first to get the architecutre
-# in comparison, .pt saves everything in the model, so is bigger
-
-#
-#
-#
-ds = dataset.Triplets(w2v.emb, words_to_ids)
+ds = dataset.Triplets(embedding_layer, words_to_ids)
 dl = torch.utils.data.DataLoader(ds, batch_size=256, shuffle=True)
 
 
 #
 #
 #
-two = models.Towers(emb=128).to(dev)
+two = models.Towers(emb=300).to(dev)
 torch.save(two.state_dict(), f'./checkpoints/{ts}.0.0.two.pth')
 print('two:', sum(p.numel() for p in two.parameters())) # 66,048
 opt = torch.optim.Adam(two.parameters(), lr=0.003)
@@ -63,7 +60,7 @@ for epoch in range(2):
     loss.backward()
     opt.step()
     # wandb.log({'loss': loss.item()})
-    if idx % 50 == 0: torch.save(two.state_dict(), f'./checkpoints/{ts}.{epoch}.{idx}.two.pth')
+  torch.save(two.state_dict(), f'./checkpoints/{ts}.{epoch}.two.pth')
 
 
 #
