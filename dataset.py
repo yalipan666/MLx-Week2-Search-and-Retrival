@@ -38,11 +38,11 @@ class Window(torch.utils.data.Dataset):
 #
 #
 class Triplets(torch.utils.data.Dataset):
-  def __init__(self, embs, tkns):
+  def __init__(self, embs, tkns, split='train'):
     self.embs = embs
     self.tkns = tkns
-    self.qrys = pickle.load(open('./corpus/qrys.pkl', 'rb'))
-    self.docs = pickle.load(open('./corpus/docs.pkl', 'rb'))
+    self.qrys = pickle.load(open(f'./corpus/qrys_{split}.pkl', 'rb'))
+    self.docs = pickle.load(open(f'./corpus/docs_{split}.pkl', 'rb'))
     self.q_keys = list(self.qrys.keys())
     self.d_keys = list(self.docs.keys())
     with open('./corpus/tokeniser.pkl', 'rb') as f: tkns = pickle.load(f)
@@ -74,8 +74,8 @@ class Triplets(torch.utils.data.Dataset):
     text = text.replace('.',  ' <PERIOD> ')
     text = text.replace(',',  ' <COMMA> ')
     text = text.replace('"',  ' <QUOTATION_MARK> ')
-    text = text.replace('“',  ' <QUOTATION_MARK> ')
-    text = text.replace('”',  ' <QUOTATION_MARK> ')
+    text = text.replace('"',  ' <QUOTATION_MARK> ')
+    text = text.replace('"',  ' <QUOTATION_MARK> ')
     text = text.replace(';',  ' <SEMICOLON> ')
     text = text.replace('!',  ' <EXCLAMATION_MARK> ')
     text = text.replace('?',  ' <QUESTION_MARK> ')
@@ -85,7 +85,7 @@ class Triplets(torch.utils.data.Dataset):
     text = text.replace('?',  ' <QUESTION_MARK> ')
     text = text.replace(':',  ' <COLON> ')
     text = text.replace("'",  ' <APOSTROPHE> ')
-    text = text.replace("’",  ' <APOSTROPHE> ')
+    text = text.replace("'",  ' <APOSTROPHE> ')
     return text.split()
 
 

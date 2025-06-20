@@ -5,6 +5,7 @@ import torch
 import models
 import pickle
 import numpy as np
+import dataset
 
 
 #
@@ -46,3 +47,17 @@ doc = two.doc(embedding_layer(doc).mean(dim=1))
 #
 res = torch.nn.functional.cosine_similarity(qry, doc)
 print(res)
+
+# Test evaluation on unseen test set
+print('Evaluating on test set...')
+test_ds = dataset.Triplets(embedding_layer, words_to_ids, split='test')
+dl_test = torch.utils.data.DataLoader(test_ds, batch_size=256, shuffle=False)
+two.eval()
+test_losses = []
+with torch.no_grad():
+    for qry, pos, neg in dl_test:
+        qry, pos, neg = qry.to(dev), pos.to(dev), neg.to(dev)
+        loss = two(qry, pos, neg, mrg=0.4)
+        test_losses.append(loss.item())
+print(f"Test Loss: {sum(test_losses)/len(test_losses):.4f}")
+two.train()

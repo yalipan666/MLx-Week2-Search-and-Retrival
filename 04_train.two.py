@@ -34,8 +34,10 @@ embedding_layer = torch.nn.Embedding.from_pretrained(embedding_matrix, freeze=Fa
 #
 #
 #
-ds = dataset.Triplets(embedding_layer, words_to_ids)
-dl = torch.utils.data.DataLoader(ds, batch_size=256, shuffle=True)
+train_ds = dataset.Triplets(embedding_layer, words_to_ids, split='train')
+val_ds = dataset.Triplets(embedding_layer, words_to_ids, split='validation')
+dl = torch.utils.data.DataLoader(train_ds, batch_size=256, shuffle=True)
+dl_val = torch.utils.data.DataLoader(val_ds, batch_size=256, shuffle=False)
 
 
 #
@@ -53,14 +55,27 @@ opt = torch.optim.Adam(two.parameters(), lr=0.003)
 #
 for epoch in range(2):
   prgs = tqdm.tqdm(dl, desc=f"Epoch {epoch + 1}", leave=False)
+  train_losses = []
   for idx, (qry, pos, neg) in enumerate(prgs):
     qry, pos, neg = qry.to(dev), pos.to(dev), neg.to(dev)
     loss = two(qry, pos, neg, mrg=0.4)
     opt.zero_grad()
     loss.backward()
     opt.step()
-    # wandb.log({'loss': loss.item()})
-  torch.save(two.state_dict(), f'./checkpoints/{ts}.{epoch}.two.pth')
+    train_losses.append(loss.item())
+    if idx % 50 == 0: torch.save(two.state_dict(), f'./checkpoints/{ts}.{epoch}.{idx}.two.pth')
+  print(f"Epoch {epoch+1} - Train Loss: {sum(train_losses)/len(train_losses):.4f}")
+
+  # Validation
+  two.eval()
+  val_losses = []
+  with torch.no_grad():
+    for qry, pos, neg in dl_val:
+      qry, pos, neg = qry.to(dev), pos.to(dev), neg.to(dev)
+      loss = two(qry, pos, neg, mrg=0.4)
+      val_losses.append(loss.item())
+  print(f"Epoch {epoch+1} - Validation Loss: {sum(val_losses)/len(val_losses):.4f}")
+  two.train()
 
 
 #
